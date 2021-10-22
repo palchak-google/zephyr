@@ -195,18 +195,16 @@ zephyr_linker_sources(SECTIONS)
 
 # 'BOARD_ROOT' is a prioritized list of directories where boards may
 # be found. It always includes ${ZEPHYR_BASE} at the lowest priority.
-zephyr_file(APPLICATION_ROOT BOARD_ROOT)
-list(APPEND BOARD_ROOT ${ZEPHYR_BASE})
+zephyr_file(APPLICATION_ROOT APP_ROOT)
+list(APPEND BOARD_ROOT ${APP_ROOT} ${ZEPHYR_BASE})
 
 # 'SOC_ROOT' is a prioritized list of directories where socs may be
-# found. It always includes ${ZEPHYR_BASE}/soc at the lowest priority.
-zephyr_file(APPLICATION_ROOT SOC_ROOT)
-list(APPEND SOC_ROOT ${ZEPHYR_BASE})
+# found. It always includes ${ZEPHYR_BASE} at the lowest priority.
+list(APPEND SOC_ROOT ${APP_ROOT} ${ZEPHYR_BASE})
 
 # 'ARCH_ROOT' is a prioritized list of directories where archs may be
 # found. It always includes ${ZEPHYR_BASE} at the lowest priority.
-zephyr_file(APPLICATION_ROOT ARCH_ROOT)
-list(APPEND ARCH_ROOT ${ZEPHYR_BASE})
+list(APPEND ARCH_ROOT ${APP_ROOT} ${ZEPHYR_BASE})
 
 # Check that BOARD has been provided, and that it has not changed.
 zephyr_check_cache(BOARD REQUIRED)
