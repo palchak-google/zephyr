@@ -41,7 +41,7 @@ def find_arch2board_set(args):
     arches = sorted(find_arches(args))
     ret = defaultdict(set)
 
-    for root in itertools.chain([ZEPHYR_BASE], args.board_roots):
+    for root in itertools.chain([ZEPHYR_BASE / 'boards'], args.board_roots):
         for arch, boards in find_arch2board_set_in(root, arches).items():
             ret[arch] |= boards
 
@@ -70,22 +70,30 @@ def find_arches_in(root):
 
     return ret
 
+def find_boards_in(root, arch):
+    ret = set()
+
+    for maybe_board in root.iterdir():
+        if not maybe_board.is_dir():
+            continue
+        for maybe_defconfig in maybe_board.iterdir():
+            file_name = maybe_defconfig.name
+            if file_name.endswith('_defconfig'):
+                board_name = file_name[:-len('_defconfig')]
+                ret.add(Board(board_name, arch, maybe_board))
+
+    return ret
+
 def find_arch2board_set_in(root, arches):
     ret = defaultdict(set)
-    boards = root / 'boards'
+    boards = root
 
     for arch in arches:
-        if not (boards / arch).is_dir():
+        arch_dir = boards / arch
+        if not arch_dir.exists():
             continue
 
-        for maybe_board in (boards / arch).iterdir():
-            if not maybe_board.is_dir():
-                continue
-            for maybe_defconfig in maybe_board.iterdir():
-                file_name = maybe_defconfig.name
-                if file_name.endswith('_defconfig'):
-                    board_name = file_name[:-len('_defconfig')]
-                    ret[arch].add(Board(board_name, arch, maybe_board))
+        ret[arch] |= find_boards_in(arch_dir, arch)
 
     return ret
 

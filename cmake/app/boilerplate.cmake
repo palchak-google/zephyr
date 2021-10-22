@@ -194,19 +194,19 @@ add_custom_target(
 zephyr_linker_sources(SECTIONS)
 
 # 'BOARD_ROOT' is a prioritized list of directories where boards may
-# be found. It always includes ${ZEPHYR_BASE} at the lowest priority.
+# be found. It always includes ${ZEPHYR_BASE}/boards at the lowest priority.
 zephyr_file(APPLICATION_ROOT BOARD_ROOT)
-list(APPEND BOARD_ROOT ${ZEPHYR_BASE})
+list(APPEND BOARD_ROOT ${ZEPHYR_BASE}/boards)
 
 # 'SOC_ROOT' is a prioritized list of directories where socs may be
 # found. It always includes ${ZEPHYR_BASE}/soc at the lowest priority.
 zephyr_file(APPLICATION_ROOT SOC_ROOT)
-list(APPEND SOC_ROOT ${ZEPHYR_BASE})
+list(APPEND SOC_ROOT ${ZEPHYR_BASE}/soc)
 
 # 'ARCH_ROOT' is a prioritized list of directories where archs may be
-# found. It always includes ${ZEPHYR_BASE} at the lowest priority.
+# found. It always includes ${ZEPHYR_BASE}/arch at the lowest priority.
 zephyr_file(APPLICATION_ROOT ARCH_ROOT)
-list(APPEND ARCH_ROOT ${ZEPHYR_BASE})
+list(APPEND ARCH_ROOT ${ZEPHYR_BASE}/arch)
 
 # Check that BOARD has been provided, and that it has not changed.
 zephyr_check_cache(BOARD REQUIRED)
@@ -239,11 +239,11 @@ zephyr_boilerplate_watch(BOARD)
 
 foreach(root ${BOARD_ROOT})
   # Check that the board root looks reasonable.
-  if(NOT IS_DIRECTORY "${root}/boards")
-    message(WARNING "BOARD_ROOT element without a 'boards' subdirectory:
+  if(NOT IS_DIRECTORY "${root}")
+    message(WARNING "BOARD_ROOT is not a directory:
 ${root}
 Hints:
-  - if your board directory is '/foo/bar/boards/<ARCH>/my_board' then add '/foo/bar' to BOARD_ROOT, not the entire board directory
+  - if your board directory is '/foo/bar/boards/<ARCH>/my_board' then add '/foo/bar/boards' to BOARD_ROOT, not the entire board path
   - if in doubt, use absolute paths")
   endif()
 
@@ -252,7 +252,7 @@ Hints:
   if (BOARD_ALIAS)
     find_path(BOARD_HIDDEN_DIR
       NAMES ${BOARD_ALIAS}_defconfig
-      PATHS ${root}/boards/*/*
+      PATHS ${root}/*/*
       NO_DEFAULT_PATH
       )
     if(BOARD_HIDDEN_DIR)
@@ -261,10 +261,10 @@ Hints:
   endif()
   find_path(BOARD_DIR
     NAMES ${BOARD}_defconfig
-    PATHS ${root}/boards/*/*
+    PATHS ${root}/*/*
     NO_DEFAULT_PATH
     )
-  if(BOARD_DIR AND NOT (${root} STREQUAL ${ZEPHYR_BASE}))
+  if(BOARD_DIR AND NOT (${root} STREQUAL "${ZEPHYR_BASE}/boards"))
     set(USING_OUT_OF_TREE_BOARD 1)
   endif()
 endforeach()
@@ -307,7 +307,7 @@ set(SHIELD-NOTFOUND ${SHIELD_AS_LIST})
 # e.g. zephyr/boards/arm/96b_carbon_nrf51/96b_carbon_nrf51_defconfig.
 # When found, use that path to infer the ARCH we are building for.
 foreach(root ${BOARD_ROOT})
-  set(shield_dir ${root}/boards/shields)
+  set(shield_dir ${root}/shields)
   # Match the Kconfig.shield files in the shield directories to make sure we are
   # finding shields, e.g. x_nucleo_iks01a1/Kconfig.shield
   file(GLOB_RECURSE shields_refs_list ${shield_dir}/*/Kconfig.shield)
@@ -412,8 +412,8 @@ get_filename_component(BOARD_ARCH_DIR ${BOARD_DIR}      DIRECTORY)
 get_filename_component(ARCH           ${BOARD_ARCH_DIR} NAME)
 
 foreach(root ${ARCH_ROOT})
-  if(EXISTS ${root}/arch/${ARCH}/CMakeLists.txt)
-    set(ARCH_DIR ${root}/arch)
+  if(EXISTS ${root}/${ARCH}/CMakeLists.txt)
+    set(ARCH_DIR ${root})
     break()
   endif()
 endforeach()
@@ -556,16 +556,16 @@ endif()
 # e.g. zephyr/soc/xtense/intel_apl_adsp/CMakeLists.txt.
 foreach(root ${SOC_ROOT})
   # Check that the root looks reasonable.
-  if(NOT IS_DIRECTORY "${root}/soc")
-    message(WARNING "SOC_ROOT element without a 'soc' subdirectory:
+  if(NOT IS_DIRECTORY "${root}")
+    message(WARNING "SOC_ROOT is not a directory:
 ${root}
 Hints:
-  - if your SoC family directory is '/foo/bar/soc/<ARCH>/my_soc_family', then add '/foo/bar' to SOC_ROOT, not the entire SoC family path
+  - if your SoC family directory is '/foo/bar/soc/<ARCH>/my_soc_family', then add '/foo/bar/soc' to SOC_ROOT, not the entire SoC family path
   - if in doubt, use absolute paths")
   endif()
 
-  if(EXISTS ${root}/soc/${ARCH}/${SOC_PATH})
-    set(SOC_DIR ${root}/soc)
+  if(EXISTS ${root}/${ARCH}/${SOC_PATH})
+    set(SOC_DIR ${root})
     break()
   endif()
 endforeach()
